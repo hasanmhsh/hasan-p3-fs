@@ -27,7 +27,16 @@ CORS(app)
     returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
         or appropriate status code indicating reason for failure
 '''
-
+@app.route('/drinks')
+def get_abstract_drinks():
+    try:
+        drinks = Drink.query.order_by(Drink.id)
+        return jsonify({
+            'success': True,
+            'drinks': [drink.short() for drink in drinks]
+        })
+    except:
+        abort(404)
 
 '''
 @TODO implement endpoint
