@@ -8,13 +8,15 @@ from jose import jwt
 from urllib.request import urlopen
 
 from .database.models import db_drop_and_create_all, setup_db, Drink
-from .auth.auth import AuthError, requires_auth
+# from .auth.auth import AuthError, requires_auth
 
 # Configuration
 # AUTH0 ACCOUNT
 AUTH0_DOMAIN = 'dev-tv8ilm54.us.auth0.com'
 ALGORITHMS = ['RS256']
 API_AUDIENCE = 'cafee'
+API_CLIENT_ID = 'c7JLjTI1xwXnM2dR1Lu2tTjlN8C9RPbe'
+
 
 class AuthError(Exception):
     def __init__(self, error, status_code):
@@ -142,6 +144,13 @@ app = Flask(__name__)
 setup_db(app)
 CORS(app)
 
+
+@app.route('/seed-database')
+def seed_database():
+    recipe1 = '[{"color": "#334455", "name":"latte", "parts":2}]'
+    drink1 = Drink(title='coffe1', recipe=recipe1)
+    drink1.insert()
+
 '''
 @DONE uncomment the following line to initialize the datbase
 !! NOTE THIS WILL DROP ALL RECORDS AND START YOUR DB FROM SCRATCH
@@ -160,14 +169,14 @@ CORS(app)
 '''
 @app.route('/drinks')
 def get_abstract_drinks():
-    try:
-        drinks = Drink.query.order_by(Drink.id)
+    # try:
+        drinks = Drink.query.order_by(Drink.id).all()
         return jsonify({
-            'success': True,
-            'drinks': [drink.short() for drink in drinks]
+            "success": True,
+            "drinks": [drink.short() for drink in drinks]
         })
-    except:
-        abort(404)
+    # except:
+        # abort(404)
 
 '''
 @DONE implement endpoint
@@ -180,12 +189,12 @@ def get_abstract_drinks():
 
 @app.route('/drinks-detail')
 @requires_auth(['get:drinks-detail'])
-def get_detailed_drink():
-        try:
+def get_detailed_drink(jwt):
+    try:
         drinks = Drink.query.order_by(Drink.id)
         return jsonify({
-            'success': True,
-            'drinks': [drink.long() for drink in drinks]
+            "success": True,
+            "drinks": [drink.long() for drink in drinks]
         })
     except:
         abort(404)
@@ -199,6 +208,17 @@ def get_detailed_drink():
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
         or appropriate status code indicating reason for failure
 '''
+@app.route('/drinks', methods=['POST'])
+@requires_auth(['post:drinks'])
+def create_drink():
+    try:
+        drinks = Drink.query.order_by(Drink.id)
+        return jsonify({
+            "success": True,
+            "drinks": [drink.long() for drink in drinks]
+        })
+    except:
+        abort(404)
 
 
 '''
