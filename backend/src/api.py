@@ -190,14 +190,6 @@ def not_found(error):
         "message": "resource not found",
     }), 404
 
-@app.errorhandler(422)
-def unprocessable(error):
-    return jsonify({
-        "success": False,
-        "error": 422,
-        "message": "unprocessable",
-    }), 422
-
 '''
 @DONE implement error handler for AuthError
     error handler should conform to general task above 
