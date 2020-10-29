@@ -172,7 +172,7 @@ def get_abstract_drinks():
     # try:
         drinks = Drink.query.order_by(Drink.id).all()
         return jsonify({
-            "success": True,
+            "success": True, 
             "drinks": [drink.short() for drink in drinks]
         })
     # except:
@@ -200,7 +200,7 @@ def get_detailed_drink(jwt):
         abort(404)
 
 '''
-@TODO implement endpoint
+@DONE implement endpoint
     POST /drinks
         it should create a new row in the drinks table
         it should require the 'post:drinks' permission
@@ -210,15 +210,19 @@ def get_detailed_drink(jwt):
 '''
 @app.route('/drinks', methods=['POST'])
 @requires_auth(['post:drinks'])
-def create_drink():
+def create_drink(jwt):
     try:
-        drinks = Drink.query.order_by(Drink.id)
+        body = request.get_json()
+        title = body['title']
+        recipe = json.dumps(body['recipe'])
+        drink = Drink(title=title, recipe=recipe)
+        drink.insert()
         return jsonify({
             "success": True,
-            "drinks": [drink.long() for drink in drinks]
+            "drinks": [drink.long()]
         })
     except:
-        abort(404)
+        abort(422)
 
 
 '''
