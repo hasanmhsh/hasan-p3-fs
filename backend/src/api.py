@@ -39,12 +39,16 @@ def seed_database():
 def get_abstract_drinks():
     # try:
         drinks = Drink.query.order_by(Drink.id).all()
+        if drinks == None:
+            abort(404)
+        if len(drinks) == 0:
+            abort(404)
         return jsonify({
-            "success": True, 
+            "success": True,
             "drinks": [drink.short() for drink in drinks]
         })
     # except:
-        # abort(404)
+    #     abort(404)
 
 '''
 @DONE implement endpoint
@@ -81,9 +85,19 @@ def get_detailed_drink(jwt):
 def create_drink(jwt):
     try:
         body = request.get_json()
-        title = body['title']
-        recipe = json.dumps(body['recipe'])
-        drink = Drink(title=title, recipe=recipe)
+        title = body.get('title', None)
+        if title == None:
+            abort(400)
+        recipe = body.get('recipe', None)
+        if recipe == None:
+            abort(400)
+        recipes = []
+        if isinstance(recipe, list):
+            recipes = recipe
+        else:
+            recipes.append(recipe)
+        recipe_str = json.dumps(recipes)
+        drink = Drink(title=title, recipe=recipe_str)
         drink.insert()
         return jsonify({
             "success": True,
@@ -113,12 +127,17 @@ def update_drink(jwt, drink_id):
         if drink == None:
             abort(404)
         body = request.get_json()
-        title = body['title']
+        title = body.get('title', None)
         if title:
             drink.title = title
-        recipe = json.dumps(body['recipe'])
+        recipe = body.get('recipe', None)
         if recipe:
-            drink.recipe = recipe
+            if isinstance(recipe, list):
+                drink.recipe = json.dumps(recipe)
+            else:
+                recipes = []
+                recipes.append(recipe)
+                drink.recipe = json.dumps(recipes)
         drink.update()
         return jsonify({
             "success": True,
@@ -161,10 +180,10 @@ Example error handling for unprocessable entity
 @app.errorhandler(422)
 def unprocessable(error):
     return jsonify({
-                    "success": False, 
-                    "error": 422,
-                    "message": "unprocessable"
-                    }), 422
+                "success": False, 
+                "error": 422,
+                "message": "unprocessable"
+            }), 422
 
 '''
 @DONE implement error handlers using the @app.errorhandler(error) decorator
@@ -201,4 +220,12 @@ def unauthorizable(error):
         "error": 403,
         "message": "unauthorized",
     }), 403
+
+@app.errorhandler(400)
+def bad_request(error):
+    return jsonify({
+        "success": False,
+        "error": 400,
+        "message": "bad request",
+    }), 400
 
