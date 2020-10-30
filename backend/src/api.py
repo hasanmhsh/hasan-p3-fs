@@ -61,7 +61,8 @@ def get_abstract_drinks():
 
 @app.route('/drinks-detail')
 @requires_auth(['get:drinks-detail'])
-def get_detailed_drink(jwt):
+def get_detailed_drink(auth_error):
+    check_auth_error(auth_error)
     try:
         drinks = Drink.query.order_by(Drink.id)
         return jsonify({
@@ -82,7 +83,8 @@ def get_detailed_drink(jwt):
 '''
 @app.route('/drinks', methods=['POST'])
 @requires_auth(['post:drinks'])
-def create_drink(jwt):
+def create_drink(auth_error):
+    check_auth_error(auth_error)
     try:
         body = request.get_json()
         title = body.get('title', None)
@@ -120,8 +122,9 @@ def create_drink(jwt):
 '''
 @app.route('/drinks/<int:drink_id>', methods=['PATCH'])
 @requires_auth(['patch:drinks'])
-def update_drink(jwt, drink_id):
+def update_drink(auth_error, drink_id):
     # return str(jwt)
+    check_auth_error(auth_error)
     try:
         drink = Drink.query.filter(Drink.id==drink_id).one_or_none()
         if drink == None:
@@ -159,8 +162,9 @@ def update_drink(jwt, drink_id):
 '''
 @app.route('/drinks/<int:drink_id>', methods=['DELETE'])
 @requires_auth(['delete:drinks'])
-def delete_drink(jwt, drink_id):
+def delete_drink(auth_error, drink_id):
     # return str(jwt)
+    check_auth_error(auth_error)
     try:
         drink = Drink.query.filter(Drink.id==drink_id).one_or_none()
         if drink == None:
@@ -174,6 +178,11 @@ def delete_drink(jwt, drink_id):
         abort(422)
 
 ## Error Handling
+def check_auth_error(error):
+    if error != None:
+        # abort(error.status_code)
+        abort(401)
+
 '''
 Example error handling for unprocessable entity
 '''
@@ -228,4 +237,12 @@ def bad_request(error):
         "error": 400,
         "message": "bad request",
     }), 400
+
+@app.errorhandler(401)
+def header_error(error):
+    return jsonify({
+        "success": False,
+        "error": 401,
+        "message": "Unauthorized",
+    }), 401
 

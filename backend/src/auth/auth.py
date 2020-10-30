@@ -30,10 +30,33 @@ class AuthError(Exception):
         it should raise an AuthError if the header is malformed
     return the token part of the header
 '''
+
+# def get_token_auth_header():
+#     #check if http request has 'Authorization' header
+#     if 'Authorization' not in request.headers:
+#         abort(401)
+
+#     # auth header example -> 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiZ2FiZSIsInNjaG9vbCI6InVkYWNpdHkiLCJyb2xlIjoiaW5zdHJ1Y3RvciJ9.T9hKh61bM-lFqvntAWrqPLWxAH-Ig0usQVwiVcJ1g5g'
+#     auth_header = request.headers['Authorization']
+#     # we don't wand 'Bearer' word we just want the jwt
+#     header_parts = auth_header.split(' ')
+
+#     # check if the authentication type is 'Bearer'
+#     if len(header_parts) != 2:
+#         abort(401)
+#     elif header_parts[0].lower() != 'bearer':
+#         abort(401)
+
+#     return header_parts[1]
+
+
 def get_token_auth_header():
     #check if http request has 'Authorization' header
     if 'Authorization' not in request.headers:
-        abort(401)
+        raise AuthError({
+            'code': 'invalid_header',
+            'description': 'Authorization malformed.'
+        }, 401)
 
     # auth header example -> 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiZ2FiZSIsInNjaG9vbCI6InVkYWNpdHkiLCJyb2xlIjoiaW5zdHJ1Y3RvciJ9.T9hKh61bM-lFqvntAWrqPLWxAH-Ig0usQVwiVcJ1g5g'
     auth_header = request.headers['Authorization']
@@ -42,9 +65,15 @@ def get_token_auth_header():
 
     # check if the authentication type is 'Bearer'
     if len(header_parts) != 2:
-        abort(401)
+        raise AuthError({
+            'code': 'invalid_header',
+            'description': 'Authorization malformed.'
+        }, 401)
     elif header_parts[0].lower() != 'bearer':
-        abort(401)
+        raise AuthError({
+            'code': 'invalid_header',
+            'description': 'Authorization malformed.'
+        }, 401)
 
     return header_parts[1]
 
@@ -167,8 +196,10 @@ def requires_auth(permissions=[]):
     def requires_auth_decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-            jwt = get_token_auth_header()
+            payload = None
+            error = None
             try:
+                jwt = get_token_auth_header()
                 payload = verify_decode_jwt(jwt)
                 if permissions != None:
                     if len(permissions) > 0:
@@ -178,8 +209,10 @@ def requires_auth(permissions=[]):
                         check_permissions('',payload)
                 else:
                     check_permissions('',payload)
-            except:
-                abort(401)
-            return f(payload,*args, **kwargs)
+            except AuthError as e:
+# The requires auth decorator is completed, but you shouldn't use abort on the auth.py file, all errors of the authorization are raised as an AuthError error, and it should be handled by the AuthError handler of the api.py file like I mentioned above.
+                # abort(401)
+                error = e
+            return f(error,*args, **kwargs)
         return wrapper
     return requires_auth_decorator
