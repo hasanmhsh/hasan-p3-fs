@@ -4,14 +4,14 @@ from flask_sqlalchemy import SQLAlchemy
 import json
 
 # Enable sqlite
-# database_filename = "database.db"
-# project_dir = os.path.dirname(os.path.abspath(__file__))
-# database_path = "sqlite:///{}".format(os.path.join(project_dir, database_filename))
+database_filename = "database.db"
+project_dir = os.path.dirname(os.path.abspath(__file__))
+database_path = "sqlite:///{}".format(os.path.join(project_dir, database_filename))
 
 
 # Enable postgres
-database_name = "cafee"
-database_path = "postgres://{}:{}@{}/{}".format('postgres', 'postgres','localhost:5432', database_name)
+# database_name = "cafee"
+# database_path = "postgres://{}:{}@{}/{}".format('postgres', 'postgres','localhost:5432', database_name)
 
 db = SQLAlchemy()
 
