@@ -196,23 +196,17 @@ def requires_auth(permissions=[]):
     def requires_auth_decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-            payload = None
-            error = None
-            try:
-                jwt = get_token_auth_header()
-                payload = verify_decode_jwt(jwt)
-                if permissions != None:
-                    if len(permissions) > 0:
-                        for permission in permissions:
-                            check_permissions(permission, payload)
-                    else:
-                        check_permissions('',payload)
+            jwt = get_token_auth_header()
+            payload = verify_decode_jwt(jwt)
+            if permissions != None:
+                if len(permissions) > 0:
+                    for permission in permissions:
+                        check_permissions(permission, payload)
                 else:
                     check_permissions('',payload)
-            except AuthError as e:
-# The requires auth decorator is completed, but you shouldn't use abort on the auth.py file, all errors of the authorization are raised as an AuthError error, and it should be handled by the AuthError handler of the api.py file like I mentioned above.
-                # abort(401)
-                error = e
-            return f(error,*args, **kwargs)
+            else:
+                check_permissions('',payload)
+
+            return f(payload,*args, **kwargs)
         return wrapper
     return requires_auth_decorator
